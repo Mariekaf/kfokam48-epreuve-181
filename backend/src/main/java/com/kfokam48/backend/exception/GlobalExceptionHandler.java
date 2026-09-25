@@ -123,6 +123,21 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(TentativesBloqueesException.class)
+    public ResponseEntity<ApiErrorResponse> handleTentativesBloquees(
+            TentativesBloqueesException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "TENTATIVES_BLOQUEES",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleJsonInvalide(
             HttpMessageNotReadableException exception

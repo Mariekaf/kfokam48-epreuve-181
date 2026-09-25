@@ -6,54 +6,81 @@ import com.kfokam48.backend.entity.CourseSession;
 import com.kfokam48.backend.entity.Etudiant;
 import com.kfokam48.backend.entity.Presence;
 import com.kfokam48.backend.entity.PresenceSource;
+import com.kfokam48.backend.entity.TentativePresence;
 import com.kfokam48.backend.exception.CodeSessionExpireException;
 import com.kfokam48.backend.exception.CodeSessionInconnuException;
 import com.kfokam48.backend.exception.EtudiantHorsPromotionException;
 import com.kfokam48.backend.exception.EtudiantInconnuException;
 import com.kfokam48.backend.exception.PresenceDejaEnregistreeException;
+import com.kfokam48.backend.exception.TentativesBloqueesException;
 import com.kfokam48.backend.repository.CourseSessionRepository;
 import com.kfokam48.backend.repository.EtudiantRepository;
 import com.kfokam48.backend.repository.PresenceRepository;
+import com.kfokam48.backend.repository.TentativePresenceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.Objects;
 
 @Service
 public class PresenceService {
 
+    private static final int NOMBRE_MAX_TENTATIVES_INCORRECTES = 5;
+    private static final int DUREE_BLOCAGE_MINUTES = 2;
+
     private final CourseSessionRepository courseSessionRepository;
     private final EtudiantRepository etudiantRepository;
     private final PresenceRepository presenceRepository;
+    private final TentativePresenceRepository tentativePresenceRepository;
+    private final Clock clock;
 
     public PresenceService(
             CourseSessionRepository courseSessionRepository,
             EtudiantRepository etudiantRepository,
-            PresenceRepository presenceRepository
+            PresenceRepository presenceRepository,
+            TentativePresenceRepository tentativePresenceRepository,
+            Clock clock
     ) {
         this.courseSessionRepository = courseSessionRepository;
         this.etudiantRepository = etudiantRepository;
         this.presenceRepository = presenceRepository;
+        this.tentativePresenceRepository = tentativePresenceRepository;
+        this.clock = clock;
     }
 
-    @Transactional
+    @Transactional(noRollbackFor = {
+            CodeSessionExpireException.class,
+            CodeSessionInconnuException.class,
+            EtudiantHorsPromotionException.class,
+            PresenceDejaEnregistreeException.class,
+            TentativesBloqueesException.class
+    })
     public MarkPresenceResponse marquerPresence(MarkPresenceRequest request) {
 
-        CourseSession session = courseSessionRepository
-                .findByCode(request.code().trim())
-                .orElseThrow(CodeSessionInconnuException::new);
-
-        OffsetDateTime maintenant = OffsetDateTime.now();
-
-        if (!maintenant.isBefore(session.getExpirationAt())) {
-            throw new CodeSessionExpireException();
-        }
+        OffsetDateTime maintenant = OffsetDateTime.now(clock);
 
         Etudiant etudiant = etudiantRepository.findById(request.etudiantId())
                 .orElseThrow(() ->
                         new EtudiantInconnuException(request.etudiantId())
                 );
+
+        TentativePresence tentativePresence =
+                recupererOuCreerTentativePresence(etudiant, maintenant);
+
+        verifierBlocage(tentativePresence, maintenant);
+
+        CourseSession session = courseSessionRepository
+                .findByCode(request.code().trim())
+                .orElseThrow(() -> {
+                    enregistrerCodeIncorrect(tentativePresence, maintenant);
+                    return new CodeSessionInconnuException();
+                });
+
+        if (!maintenant.isBefore(session.getExpirationAt())) {
+            throw new CodeSessionExpireException();
+        }
 
         if (!Objects.equals(
                 session.getPromotion().getId(),
@@ -73,6 +100,7 @@ public class PresenceService {
         presence.setEnregistreeAt(maintenant);
 
         Presence presenceEnregistree = presenceRepository.save(presence);
+        reinitialiserTentatives(tentativePresence, maintenant);
 
         return new MarkPresenceResponse(
                 presenceEnregistree.getId(),
@@ -80,5 +108,65 @@ public class PresenceService {
                 etudiant.getId(),
                 presenceEnregistree.getSource()
         );
+    }
+
+    private TentativePresence recupererOuCreerTentativePresence(
+            Etudiant etudiant,
+            OffsetDateTime maintenant
+    ) {
+
+        return tentativePresenceRepository.findByEtudiant(etudiant)
+                .orElseGet(() -> new TentativePresence(etudiant, maintenant));
+    }
+
+    private void verifierBlocage(
+            TentativePresence tentativePresence,
+            OffsetDateTime maintenant
+    ) {
+
+        OffsetDateTime bloqueJusqua = tentativePresence.getBloqueJusqua();
+
+        if (bloqueJusqua == null) {
+            return;
+        }
+
+        if (maintenant.isBefore(bloqueJusqua)) {
+            throw new TentativesBloqueesException();
+        }
+
+        reinitialiserTentatives(tentativePresence, maintenant);
+    }
+
+    private void enregistrerCodeIncorrect(
+            TentativePresence tentativePresence,
+            OffsetDateTime maintenant
+    ) {
+
+        int nombreTentatives =
+                tentativePresence.getNombreTentativesIncorrectes() + 1;
+
+        tentativePresence.setNombreTentativesIncorrectes(nombreTentatives);
+        tentativePresence.setUpdatedAt(maintenant);
+
+        if (nombreTentatives >= NOMBRE_MAX_TENTATIVES_INCORRECTES) {
+            tentativePresence.setBloqueJusqua(
+                    maintenant.plusMinutes(DUREE_BLOCAGE_MINUTES)
+            );
+            tentativePresenceRepository.save(tentativePresence);
+            throw new TentativesBloqueesException();
+        }
+
+        tentativePresenceRepository.save(tentativePresence);
+    }
+
+    private void reinitialiserTentatives(
+            TentativePresence tentativePresence,
+            OffsetDateTime maintenant
+    ) {
+
+        tentativePresence.setNombreTentativesIncorrectes(0);
+        tentativePresence.setBloqueJusqua(null);
+        tentativePresence.setUpdatedAt(maintenant);
+        tentativePresenceRepository.save(tentativePresence);
     }
 }
