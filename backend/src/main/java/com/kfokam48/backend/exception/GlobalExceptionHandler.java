@@ -48,6 +48,81 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(CodeSessionInconnuException.class)
+    public ResponseEntity<ApiErrorResponse> handleCodeSessionInconnu(
+            CodeSessionInconnuException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "CODE_INCONNU",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(EtudiantInconnuException.class)
+    public ResponseEntity<ApiErrorResponse> handleEtudiantInconnu(
+            EtudiantInconnuException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "ETUDIANT_INCONNU",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(EtudiantHorsPromotionException.class)
+    public ResponseEntity<ApiErrorResponse> handleEtudiantHorsPromotion(
+            EtudiantHorsPromotionException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "ETUDIANT_HORS_PROMOTION",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(PresenceDejaEnregistreeException.class)
+    public ResponseEntity<ApiErrorResponse> handlePresenceDejaEnregistree(
+            PresenceDejaEnregistreeException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "DEJA_PRESENT",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
+    @ExceptionHandler(CodeSessionExpireException.class)
+    public ResponseEntity<ApiErrorResponse> handleCodeSessionExpire(
+            CodeSessionExpireException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "CODE_EXPIRE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.GONE)
+                .body(response);
+    }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ApiErrorResponse> handleJsonInvalide(
             HttpMessageNotReadableException exception
