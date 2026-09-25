@@ -168,6 +168,9 @@ Cette valeur est une hypothèse de dimensionnement du projet et non une limite m
 | RG18 | La moyenne présentée au formateur est calculée par le backend à partir des notes reçues et non par le frontend. | Contrainte F3 |
 | RG19 | Une promotion inconnue demandée dans le tableau produit une erreur fonctionnelle. | Contrat API |
 | RG20 | Toutes les erreurs de l'API utilisent un objet contenant au minimum les propriétés `code` et `message`. | Contrat API |
+| RG21 | Une session suit les états `OUVERTE`, `TERMINEE`, puis `CLOTUREE`. | Décision projet — Q3/Q12 |
+| RG22 | Le passage à `TERMINEE` interdit toute nouvelle présence mais autorise encore le dépôt d'exercices. | Décision projet — Q3/Q12 |
+| RG23 | Le passage à `CLOTUREE` interdit les nouveaux dépôts et les modifications de relecture. | Q10/Q12 + décision projet |
 
 ---
 
@@ -184,6 +187,7 @@ Cette valeur est une hypothèse de dimensionnement du projet et non une limite m
 | Données de promotions et étudiants | Le contrat utilise `promotionId` et `etudiantId`, mais aucune fonctionnalité de gestion administrative de ces données n'est décrite. | Des promotions et étudiants de démonstration seront chargés au démarrage. Aucun CRUD complet d'administration n'est prévu. | Cela permet d'utiliser les fonctionnalités demandées sans ajouter un module non exprimé par le client. |
 | Commentaire de relecture vide | Le client demande « note et commentaire » mais ne précise pas si le commentaire peut être vide. | Le commentaire est considéré comme obligatoire lors de la soumission d'une relecture. | Une relecture entre pairs sans commentaire ne répondrait que partiellement au besoin exprimé. |
 | Moyenne lorsqu'aucune note n'existe | Le client demande une moyenne, mais ne précise pas le résultat pour un étudiant n'ayant reçu aucune note. | La moyenne est retournée à `null` lorsqu'aucune note n'est disponible. | `0` pourrait être interprété à tort comme une note réellement obtenue. |
+| Distinction entre fin et clôture d'une session | Q3 interdit la présence après la fin de la session, tandis que Q12 autorise encore le dépôt d'un exercice jusqu'à la clôture. Le besoin ne précise pas comment la fin est déclenchée. | Une session possède trois états : `OUVERTE`, `TERMINEE` et `CLOTUREE`. Le formateur déclenche explicitement la fin du cours puis peut clôturer la session plus tard. | La présence est interdite dès `TERMINEE`, tandis que le dépôt reste possible jusqu'à `CLOTUREE`. |
 
 ---
 

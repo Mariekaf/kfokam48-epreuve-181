@@ -35,6 +35,7 @@ erDiagram
         datetime ouverture_at
         datetime expiration_at
         datetime cloture_at
+        datetime fin_at
         string statut
         long promotion_id FK
     }
