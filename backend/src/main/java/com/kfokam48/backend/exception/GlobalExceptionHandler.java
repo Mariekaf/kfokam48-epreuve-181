@@ -168,6 +168,66 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(NoteInvalideException.class)
+    public ResponseEntity<ApiErrorResponse> handleNoteInvalide(
+            NoteInvalideException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "NOTE_INVALIDE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(AutoRelectureException.class)
+    public ResponseEntity<ApiErrorResponse> handleAutoRelecture(
+            AutoRelectureException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "AUTO_RELECTURE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(response);
+    }
+
+    @ExceptionHandler(RelectureInconnueException.class)
+    public ResponseEntity<ApiErrorResponse> handleRelectureInconnue(
+            RelectureInconnueException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "RELECTURE_INCONNUE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
+    @ExceptionHandler(RelectureDejaRendueException.class)
+    public ResponseEntity<ApiErrorResponse> handleRelectureDejaRendue(
+            RelectureDejaRendueException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "RELECTURE_DEJA_RENDUE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
     @ExceptionHandler(CodeSessionExpireException.class)
     public ResponseEntity<ApiErrorResponse> handleCodeSessionExpire(
             CodeSessionExpireException exception
@@ -202,6 +262,17 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleJsonInvalide(
             HttpMessageNotReadableException exception
     ) {
+        if (exception.getMessage() != null
+                && exception.getMessage().contains("\"note\"")) {
+            ApiErrorResponse response = new ApiErrorResponse(
+                    "NOTE_INVALIDE",
+                    "La note doit etre un entier compris entre 0 et 20."
+            );
+
+            return ResponseEntity
+                    .status(HttpStatus.BAD_REQUEST)
+                    .body(response);
+        }
 
         ApiErrorResponse response = new ApiErrorResponse(
                 "REQUETE_INVALIDE",
