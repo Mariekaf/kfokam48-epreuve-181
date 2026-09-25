@@ -48,6 +48,9 @@ class ExerciceServiceTest {
     @Mock
     private ExerciceRepository exerciceRepository;
 
+    @Mock
+    private RelectureAffectationService relectureAffectationService;
+
     private ExerciceService exerciceService;
 
     private final Clock clock = Clock.fixed(
@@ -61,6 +64,7 @@ class ExerciceServiceTest {
                 courseSessionRepository,
                 etudiantRepository,
                 exerciceRepository,
+                relectureAffectationService,
                 clock
         );
     }
@@ -108,6 +112,9 @@ class ExerciceServiceTest {
         assertEquals(OffsetDateTime.now(clock), exercice.getDeposeAt());
         assertSame(session, exercice.getSession());
         assertSame(etudiant, exercice.getEtudiant());
+
+        verify(relectureAffectationService)
+                .affecterRelecteurSiPossible(exercice);
     }
 
     @Test
@@ -121,6 +128,8 @@ class ExerciceServiceTest {
         );
 
         verify(exerciceRepository, never()).save(any(Exercice.class));
+        verify(relectureAffectationService, never())
+                .affecterRelecteurSiPossible(any(Exercice.class));
     }
 
     @Test
@@ -149,6 +158,8 @@ class ExerciceServiceTest {
         );
 
         verify(exerciceRepository, never()).save(any(Exercice.class));
+        verify(relectureAffectationService, never())
+                .affecterRelecteurSiPossible(any(Exercice.class));
     }
 
     @Test
@@ -176,6 +187,8 @@ class ExerciceServiceTest {
         );
 
         verify(exerciceRepository, never()).save(any(Exercice.class));
+        verify(relectureAffectationService, never())
+                .affecterRelecteurSiPossible(any(Exercice.class));
     }
 
     private Promotion promotion(Long id) {
