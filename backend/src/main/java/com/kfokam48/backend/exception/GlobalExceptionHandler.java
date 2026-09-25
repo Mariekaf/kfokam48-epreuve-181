@@ -93,6 +93,36 @@ public class GlobalExceptionHandler {
                 .body(response);
     }
 
+    @ExceptionHandler(SessionInconnueException.class)
+    public ResponseEntity<ApiErrorResponse> handleSessionInconnue(
+            SessionInconnueException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "SESSION_INCONNUE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(LienInvalideException.class)
+    public ResponseEntity<ApiErrorResponse> handleLienInvalide(
+            LienInvalideException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "LIEN_INVALIDE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
     @ExceptionHandler(PresenceDejaEnregistreeException.class)
     public ResponseEntity<ApiErrorResponse> handlePresenceDejaEnregistree(
             PresenceDejaEnregistreeException exception
@@ -100,6 +130,36 @@ public class GlobalExceptionHandler {
 
         ApiErrorResponse response = new ApiErrorResponse(
                 "DEJA_PRESENT",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
+    @ExceptionHandler(ExerciceDejaDeposeException.class)
+    public ResponseEntity<ApiErrorResponse> handleExerciceDejaDepose(
+            ExerciceDejaDeposeException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "EXERCICE_DEJA_DEPOSE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
+    @ExceptionHandler(SessionClotureeException.class)
+    public ResponseEntity<ApiErrorResponse> handleSessionCloturee(
+            SessionClotureeException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "SESSION_CLOTUREE",
                 exception.getMessage()
         );
 
