@@ -8,7 +8,7 @@
 
 ## Étape 1 — Analyse et conception
 
-**Statut :** En cours
+**Statut :** Terminé
 
 ### Fait
 
@@ -52,6 +52,9 @@
     - passage de six à cinq étapes ;
     - suppression de l'épreuve Git séparée ;
     - nouvelle procédure d'obtention de l'enveloppe auprès du surveillant après `[JALON] v0.1`.
+- Complétion et validation de `api/contrat.yaml` avec les cinq opérations imposées et les opérations supplémentaires nécessaires aux exigences retenues.
+- Ajout du `.gitignore` avant le premier commit de code.
+- Vérification finale de la cohérence entre le cahier des charges, les diagrammes, les issues et le contrat API.
 
 ### Bloqué
 
@@ -94,16 +97,12 @@ J'ai vérifié les réponses en les comparant avec :
 
 Certaines propositions ont été corrigées lorsqu'elles ajoutaient des comportements qui n'étaient pas explicitement demandés ou lorsqu'elles ne correspondaient pas exactement au contrat API.
 
-### Reste à faire avant de terminer l'étape 1
 
-- compléter `api/contrat.yaml` avec les opérations supplémentaires nécessaires ;
-- vérifier une dernière fois la cohérence :
-    - cahier des charges ;
-    - diagrammes ;
-    - issues ;
-    - contrat API ;
-- mettre à jour cette entrée du journal avec le temps réel consacré aux blocages ;
-- poser et pousser le commit :
+### Clôture de l'étape
+
+L'analyse, les diagrammes, le backlog et le contrat API ont été finalisés et vérifiés.
+
+Le jalon `[JALON] analyse` peut être posé avant tout premier commit de code.
 
 `[JALON] analyse`
 
