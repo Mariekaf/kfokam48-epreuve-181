@@ -15,4 +15,6 @@ public interface ExerciceRepository extends JpaRepository<Exercice, Long> {
             CourseSession session,
             Etudiant etudiant
     );
+
+    long countByEtudiant(Etudiant etudiant);
 }

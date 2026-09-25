@@ -7,6 +7,7 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import tools.jackson.core.JacksonException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -45,6 +46,21 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(response);
+    }
+
+    @ExceptionHandler(PromotionTableauInconnueException.class)
+    public ResponseEntity<ApiErrorResponse> handlePromotionTableauInconnue(
+            PromotionTableauInconnueException exception
+    ) {
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                "PROMOTION_INCONNUE",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
                 .body(response);
     }
 
@@ -262,8 +278,9 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ApiErrorResponse> handleJsonInvalide(
             HttpMessageNotReadableException exception
     ) {
-        if (exception.getMessage() != null
-                && exception.getMessage().contains("\"note\"")) {
+
+        if (concerneLeChampNote(exception)) {
+
             ApiErrorResponse response = new ApiErrorResponse(
                     "NOTE_INVALIDE",
                     "La note doit etre un entier compris entre 0 et 20."
@@ -282,6 +299,19 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(response);
+    }
+
+    private boolean concerneLeChampNote(HttpMessageNotReadableException exception) {
+
+        Throwable cause = exception.getCause();
+
+        if (!(cause instanceof JacksonException jacksonException)) {
+            return false;
+        }
+
+        return jacksonException.getPath()
+                .stream()
+                .anyMatch(reference -> "note".equals(reference.getPropertyName()));
     }
 
     @ExceptionHandler(Exception.class)

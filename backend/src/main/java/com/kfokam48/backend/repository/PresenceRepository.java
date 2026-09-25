@@ -13,6 +13,8 @@ public interface PresenceRepository extends JpaRepository<Presence, Long> {
 
     boolean existsBySessionAndEtudiant(CourseSession session, Etudiant etudiant);
 
+    long countByEtudiant(Etudiant etudiant);
+
     @Query("""
             select distinct p.etudiant
             from Presence p
