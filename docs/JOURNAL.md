@@ -112,6 +112,17 @@ Le jalon `[JALON] analyse` peut être posé avant tout premier commit de code.
 
 **Fait :**
 
+### US-03 — Blocage après 5 codes incorrects
+
+- Implémentation du compteur de tentatives incorrectes.
+- Blocage de l'étudiant après 5 codes incorrects.
+- Durée du blocage : 2 minutes.
+- Refus de toute tentative pendant la période de blocage.
+- Remise à zéro du compteur après une présence réussie.
+- Tests automatisés exécutés avec succès avec `.\mvnw.cmd clean test`.
+
+Note de traçabilité : l'implémentation de US-03 a été intégrée dans `main` par erreur lors de la PR #14 de US-02. Aucun historique Git n'a été réécrit.
+
 **Bloqué :**
 
 **IA :**
