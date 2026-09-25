@@ -1,0 +1,37 @@
+<div class="shell">
+  <aside>
+    <div class="brand"><span>K48</span><div><b>Suivi sessions</b><small>Épreuve 181</small></div></div>
+    <nav>
+      <button [class.active]="role==='formateur'" (click)="setRole('formateur')">▦ <span>Examinateur / Formateur</span></button>
+      <button [class.active]="role==='etudiant'" (click)="setRole('etudiant')">◎ <span>Espace étudiant</span></button>
+    </nav>
+    <div class="status"><i></i><div><b>API locale</b><small>localhost:8080</small></div></div>
+  </aside>
+
+  <main>
+    <header><div><p class="eyebrow">KFOKAM48 · PLATEFORME DE SUIVI</p><h1>{{role==='formateur'?'Tableau de l’examinateur':'Espace étudiant'}}</h1></div><label class="promotion">Promotion<select [(ngModel)]="promotionId" (change)="onPromotion()"><option *ngFor="let p of promotions" [ngValue]="p.id">{{p.nom}}</option></select></label></header>
+    <div class="notice loading" *ngIf="loading">Traitement en cours…</div>
+    <div class="notice ok" *ngIf="message">{{message}}</div>
+    <div class="notice err" *ngIf="error">{{error}}</div>
+
+    <ng-container *ngIf="role==='formateur'">
+      <section class="hero"><div><span class="pill">PILOTAGE</span><h2>Gérer une session de bout en bout</h2><p>Ouvrez une session, partagez le code, gérez les présences puis clôturez lorsque les travaux sont terminés.</p></div><div class="hero-stat"><strong>{{sessions.length}}</strong><span>session(s)</span></div></section>
+      <div class="grid two">
+        <section class="card"><div class="card-title"><div><span class="num">01</span><div><h3>Ouvrir une session</h3><p>Le code expire automatiquement après 15 minutes.</p></div></div></div><label>Titre de la session<input [(ngModel)]="titre" placeholder="Ex. Angular avancé"></label><button class="primary" (click)="ouvrir()" [disabled]="loading||!promotionId">Ouvrir et générer le code</button></section>
+        <section class="card"><div class="card-title"><div><span class="num">02</span><div><h3>Session active</h3><p>Actions de fin et de clôture.</p></div></div></div><label>Session<select [(ngModel)]="sessionId"><option [ngValue]="null">Sélectionner</option><option *ngFor="let s of sessions" [ngValue]="s.id">#{{s.id}} · {{s.titre}} · {{s.statut}}</option></select></label><div class="session-code" *ngIf="sessionId as sid"><ng-container *ngFor="let s of sessions"><ng-container *ngIf="s.id===sid"><small>Code de présence</small><strong>{{s.code}}</strong><span>{{s.statut}}</span></ng-container></ng-container></div><div class="actions"><button class="secondary" (click)="terminer()" [disabled]="!sessionId">Terminer</button><button class="danger" (click)="cloturer()" [disabled]="!sessionId">Clôturer</button></div></section>
+      </div>
+      <section class="card"><div class="card-title"><div><span class="num">03</span><div><h3>Présence manuelle</h3><p>La source sera enregistrée comme FORMATEUR.</p></div></div></div><div class="inline"><label>Étudiant<select [(ngModel)]="etudiantId"><option *ngFor="let e of etudiants" [ngValue]="e.id">{{e.nom}}</option></select></label><button class="primary" (click)="presenceManuelle()" [disabled]="!sessionId||!etudiantId">Ajouter la présence</button></div></section>
+      <section class="card table-card"><div class="table-head"><div><h3>Tableau de suivi</h3><p>Calculs et moyennes fournis par le backend.</p></div><button class="ghost" (click)="loadTableau()">↻ Actualiser</button></div><div class="table-wrap"><table><thead><tr><th>Étudiant</th><th>Présences</th><th>Exercices</th><th>Moyenne</th><th>Relectures en attente</th></tr></thead><tbody><tr *ngFor="let row of tableau"><td><b>{{row.nom}}</b><small>#{{row.etudiantId}}</small></td><td>{{row.presences}}</td><td>{{row.exercicesDeposes}}</td><td><span class="score">{{moyenne(row.moyenne)}}</span></td><td><span class="badge" [class.warn]="row.relecturesEnAttente>0">{{row.relecturesEnAttente}}</span></td></tr><tr *ngIf="!tableau.length"><td colspan="5" class="empty">Aucune donnée à afficher.</td></tr></tbody></table></div></section>
+    </ng-container>
+
+    <ng-container *ngIf="role==='etudiant'">
+      <section class="card identity"><div><span class="pill">IDENTITÉ</span><h2>Qui êtes-vous ?</h2><p>Aucun mot de passe n’est requis.</p></div><label>Étudiant<select [(ngModel)]="etudiantId" (change)="loadEtudiant()"><option *ngFor="let e of etudiants" [ngValue]="e.id">{{e.nom}}</option></select></label></section>
+      <div class="grid two">
+        <section class="card"><h3>Marquer ma présence</h3><p>Saisissez le code fourni par le formateur.</p><label>Code de session<input class="code-input" maxlength="20" [(ngModel)]="code" placeholder="ABC123"></label><button class="primary" (click)="marquerPresence()" [disabled]="!etudiantId||!code">Valider ma présence</button></section>
+        <section class="card"><h3>Déposer mon exercice</h3><p>Un seul exercice par session. Le lien peut être remplacé avant le début de la relecture.</p><label>Session<select [(ngModel)]="sessionId"><option [ngValue]="null">Sélectionner</option><option *ngFor="let s of sessions" [ngValue]="s.id">#{{s.id}} · {{s.titre}} · {{s.statut}}</option></select></label><label>Lien<input [(ngModel)]="lien" placeholder="https://..."></label><div class="actions"><button class="primary" (click)="deposer()">Déposer</button><button class="secondary" (click)="remplacer()" [disabled]="!exerciceId">Remplacer le lien</button></div></section>
+      </div>
+      <section class="card"><div class="table-head"><div><h3>Mes exercices et résultats</h3><p>L’identité du relecteur n’est jamais affichée.</p></div><button class="ghost" (click)="loadEtudiant()">↻ Actualiser</button></div><div class="result-grid"><article *ngFor="let r of resultats"><div><span class="badge">{{r.statut}}</span><small>Session #{{r.sessionId}}</small></div><a [href]="r.lien" target="_blank">Ouvrir mon exercice ↗</a><button class="ghost" (click)="selectionnerExercice(r)">Modifier ce lien</button><strong *ngIf="r.note!==null">{{r.note}}/20</strong><p>{{r.commentaire || 'Pas encore de commentaire.'}}</p></article><p class="empty" *ngIf="!resultats.length">Aucun exercice déposé.</p></div></section>
+      <section class="card"><h3>Mes relectures à effectuer</h3><div class="review-layout"><div class="review-list"><button *ngFor="let r of relectures" (click)="choisirRelecture(r)" [class.selected]="selectedRelecture?.id===r.id"><span>Exercice #{{r.exerciceId}}</span><span class="badge">{{r.statut}}</span></button><p class="empty" *ngIf="!relectures.length">Aucune relecture affectée.</p></div><div class="review-panel" *ngIf="selectedRelecture as r"><div class="table-head"><div><h4>Relecture #{{r.id}}</h4><p>État : {{r.statut}}</p></div><a *ngIf="r.lien" [href]="r.lien" target="_blank">Voir l’exercice ↗</a></div><button class="secondary full" *ngIf="r.statut==='A_FAIRE'" (click)="commencer()">Commencer la relecture</button><label>Note /20<input type="number" min="0" max="20" step="1" [(ngModel)]="note"></label><label>Commentaire<textarea rows="5" [(ngModel)]="commentaire" placeholder="Commentaire constructif obligatoire"></textarea></label><button class="primary full" *ngIf="r.statut!=='RELU'" (click)="rendre()">Rendre la relecture</button><button class="primary full" *ngIf="r.statut==='RELU'" (click)="corriger()">Corriger avant clôture</button></div></div></section>
+    </ng-container>
+  </main>
+</div>

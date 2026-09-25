@@ -1,0 +1,3 @@
+-- Migration neutralisée dans la version finale.
+-- RG6 impose un seul relecteur par exercice : la contrainte UNIQUE(exercice_id)
+-- créée dans V5 reste donc volontairement en place.
