@@ -4,12 +4,18 @@ import com.kfokam48.backend.entity.CourseSession;
 import com.kfokam48.backend.entity.Etudiant;
 import com.kfokam48.backend.entity.Exercice;
 import com.kfokam48.backend.entity.ExerciceStatus;
+import com.kfokam48.backend.entity.Presence;
+import com.kfokam48.backend.entity.PresenceSource;
 import com.kfokam48.backend.entity.Promotion;
+import com.kfokam48.backend.entity.Relecture;
+import com.kfokam48.backend.entity.RelectureStatus;
 import com.kfokam48.backend.entity.SessionStatus;
 import com.kfokam48.backend.repository.CourseSessionRepository;
 import com.kfokam48.backend.repository.EtudiantRepository;
 import com.kfokam48.backend.repository.ExerciceRepository;
+import com.kfokam48.backend.repository.PresenceRepository;
 import com.kfokam48.backend.repository.PromotionRepository;
+import com.kfokam48.backend.repository.RelectureRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -42,6 +48,12 @@ class ExerciceControllerIntegrationTest {
 
     @Autowired
     private ExerciceRepository exerciceRepository;
+
+    @Autowired
+    private PresenceRepository presenceRepository;
+
+    @Autowired
+    private RelectureRepository relectureRepository;
 
     @Test
     void doitRetourner201LorsDuDepotDUnExercice() throws Exception {
@@ -232,6 +244,160 @@ class ExerciceControllerIntegrationTest {
                 .andExpect(jsonPath("$.statut").value("DEPOSE"));
     }
 
+    @Test
+    void doitAffecterUnRelecteurParmiLesEtudiantsPresentsEligibles()
+            throws Exception {
+
+        Promotion promotion = promotionRepository.save(
+                new Promotion("KFOKAM48 Relecteurs Eligibles")
+        );
+        CourseSession session = courseSessionRepository.save(
+                session("REA001", promotion, SessionStatus.OUVERTE)
+        );
+        Etudiant auteur = etudiantRepository.save(
+                new Etudiant("Auteur", promotion)
+        );
+        Etudiant present1 = etudiantRepository.save(
+                new Etudiant("Present 1", promotion)
+        );
+        Etudiant present2 = etudiantRepository.save(
+                new Etudiant("Present 2", promotion)
+        );
+        Etudiant absent = etudiantRepository.save(
+                new Etudiant("Absent", promotion)
+        );
+
+        presenceRepository.save(presence(session, auteur));
+        presenceRepository.save(presence(session, present1));
+        presenceRepository.save(presence(session, present2));
+
+        mockMvc.perform(
+                        post("/api/exercices")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body(
+                                        session.getId(),
+                                        auteur.getId(),
+                                        "https://example.com/affectation"
+                                ))
+                )
+                .andExpect(status().isCreated());
+
+        Exercice exercice = exerciceRepository
+                .findBySessionAndEtudiant(session, auteur)
+                .orElseThrow();
+        Relecture relecture = relectureRepository.findByExercice(exercice)
+                .orElseThrow();
+
+        Long relecteurId = relecture.getRelecteur().getId();
+
+        org.junit.jupiter.api.Assertions.assertNotEquals(
+                auteur.getId(),
+                relecteurId
+        );
+        org.junit.jupiter.api.Assertions.assertNotEquals(
+                absent.getId(),
+                relecteurId
+        );
+        org.junit.jupiter.api.Assertions.assertTrue(
+                relecteurId.equals(present1.getId())
+                        || relecteurId.equals(present2.getId())
+        );
+        org.junit.jupiter.api.Assertions.assertEquals(
+                RelectureStatus.A_FAIRE,
+                relecture.getStatut()
+        );
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1,
+                relectureRepository.countByExercice(exercice)
+        );
+    }
+
+    @Test
+    void doitAffecterLeSeulEtudiantEligible() throws Exception {
+
+        Promotion promotion = promotionRepository.save(
+                new Promotion("KFOKAM48 Relecteur Unique")
+        );
+        CourseSession session = courseSessionRepository.save(
+                session("REA002", promotion, SessionStatus.OUVERTE)
+        );
+        Etudiant auteur = etudiantRepository.save(
+                new Etudiant("Auteur Unique", promotion)
+        );
+        Etudiant relecteur = etudiantRepository.save(
+                new Etudiant("Relecteur Unique", promotion)
+        );
+
+        presenceRepository.save(presence(session, auteur));
+        presenceRepository.save(presence(session, relecteur));
+
+        mockMvc.perform(
+                        post("/api/exercices")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body(
+                                        session.getId(),
+                                        auteur.getId(),
+                                        "https://example.com/relecteur-unique"
+                                ))
+                )
+                .andExpect(status().isCreated());
+
+        Exercice exercice = exerciceRepository
+                .findBySessionAndEtudiant(session, auteur)
+                .orElseThrow();
+        Relecture relecture = relectureRepository.findByExercice(exercice)
+                .orElseThrow();
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                relecteur.getId(),
+                relecture.getRelecteur().getId()
+        );
+        org.junit.jupiter.api.Assertions.assertEquals(
+                1,
+                relectureRepository.countByExercice(exercice)
+        );
+    }
+
+    @Test
+    void neDoitPasCreerDeRelectureSansEtudiantEligible() throws Exception {
+
+        Promotion promotion = promotionRepository.save(
+                new Promotion("KFOKAM48 Aucun Relecteur")
+        );
+        CourseSession session = courseSessionRepository.save(
+                session("REA003", promotion, SessionStatus.OUVERTE)
+        );
+        Etudiant auteur = etudiantRepository.save(
+                new Etudiant("Auteur Seul", promotion)
+        );
+
+        presenceRepository.save(presence(session, auteur));
+
+        mockMvc.perform(
+                        post("/api/exercices")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(body(
+                                        session.getId(),
+                                        auteur.getId(),
+                                        "https://example.com/auteur-seul"
+                                ))
+                )
+                .andExpect(status().isCreated());
+
+        Exercice exercice = exerciceRepository
+                .findBySessionAndEtudiant(session, auteur)
+                .orElseThrow();
+
+        org.junit.jupiter.api.Assertions.assertEquals(
+                0,
+                relectureRepository.countByExercice(exercice)
+        );
+        org.junit.jupiter.api.Assertions.assertEquals(
+                ExerciceStatus.DEPOSE,
+                exercice.getStatut()
+        );
+    }
+
     private String body(Long sessionId, Long etudiantId, String lien) {
 
         return """
@@ -285,5 +451,16 @@ class ExerciceControllerIntegrationTest {
         exercice.setEtudiant(etudiant);
 
         return exercice;
+    }
+
+    private Presence presence(CourseSession session, Etudiant etudiant) {
+
+        Presence presence = new Presence();
+        presence.setSession(session);
+        presence.setEtudiant(etudiant);
+        presence.setSource(PresenceSource.ETUDIANT);
+        presence.setEnregistreeAt(OffsetDateTime.now());
+
+        return presence;
     }
 }

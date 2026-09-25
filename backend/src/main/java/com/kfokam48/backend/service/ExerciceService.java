@@ -31,17 +31,20 @@ public class ExerciceService {
     private final CourseSessionRepository courseSessionRepository;
     private final EtudiantRepository etudiantRepository;
     private final ExerciceRepository exerciceRepository;
+    private final RelectureAffectationService relectureAffectationService;
     private final Clock clock;
 
     public ExerciceService(
             CourseSessionRepository courseSessionRepository,
             EtudiantRepository etudiantRepository,
             ExerciceRepository exerciceRepository,
+            RelectureAffectationService relectureAffectationService,
             Clock clock
     ) {
         this.courseSessionRepository = courseSessionRepository;
         this.etudiantRepository = etudiantRepository;
         this.exerciceRepository = exerciceRepository;
+        this.relectureAffectationService = relectureAffectationService;
         this.clock = clock;
     }
 
@@ -86,6 +89,9 @@ public class ExerciceService {
         exercice.setEtudiant(etudiant);
 
         Exercice exerciceEnregistre = exerciceRepository.save(exercice);
+        relectureAffectationService.affecterRelecteurSiPossible(
+                exerciceEnregistre
+        );
 
         return new CreateExerciceResponse(
                 exerciceEnregistre.getId(),
