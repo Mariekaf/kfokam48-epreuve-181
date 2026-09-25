@@ -352,7 +352,7 @@ Un second dépôt public distinct sera créé pour l'étape consacrée à l'épr
 
 ## 10. Démarche prévue
 
-Le développement sera réalisé conformément aux six étapes définies par le sujet.
+Le développement sera réalisé conformément aux cinq étapes définies par le sujet.
 
 ### Étape 1 — Analyse et conception
 
@@ -362,7 +362,7 @@ Avant toute implémentation :
 2. rédiger le cahier des charges ;
 3. identifier les exigences fonctionnelles et non fonctionnelles ;
 4. formaliser les règles de gestion ;
-5. documenter les contradictions et hypothèses ;
+5. documenter les zones d'ombre, hypothèses et contradictions ;
 6. produire les diagrammes ;
 7. constituer le backlog sous forme d'issues GitHub ;
 8. compléter et figer le contrat API ;
@@ -377,18 +377,19 @@ Aucun code applicatif ne doit précéder ce jalon.
 
 ### Étape 2 — Première version v0.1
 
-Les exigences prioritaires `Must` sont développées en premier.
+Les issues de priorité `Must` sont développées en premier.
 
-Pour chaque fonctionnalité :
+Pour chaque issue :
 
-1. sélectionner ou créer l'issue correspondante ;
+1. sélectionner l'issue ;
 2. créer une branche dédiée ;
 3. implémenter la fonctionnalité ;
-4. exécuter les tests ;
-5. créer des commits atomiques et explicites ;
+4. exécuter les tests concernés ;
+5. effectuer des commits atomiques et explicites ;
 6. pousser régulièrement la branche ;
 7. ouvrir une pull request liée à l'issue ;
-8. fusionner uniquement lorsque `main` reste fonctionnel.
+8. intégrer la pull request uniquement si `main` reste fonctionnel ;
+9. fermer l'issue lorsque ses critères d'acceptation sont satisfaits.
 
 Lorsque la première version est terminée, poser :
 
@@ -398,20 +399,20 @@ Lorsque la première version est terminée, poser :
 
 ### Étape 3 — Gestion du changement
 
-Après le jalon `v0.1`, ouvrir l'enveloppe fournie.
+Une fois `[JALON] v0.1` poussé, demander l'enveloppe au surveillant.
 
 Avant de modifier le code :
 
-1. lire le nouveau besoin et le bug ;
+1. lire le bug signalé et le nouveau besoin ;
 2. reproduire le bug ;
-3. créer les issues correspondantes ;
-4. analyser les impacts ;
+3. créer les issues correspondantes avant de coder ;
+4. analyser les impacts sur l'application ;
 5. mettre à jour le cahier des charges ;
 6. mettre à jour les diagrammes concernés ;
 7. mettre à jour le contrat API ;
-8. créer la migration nécessaire ;
+8. ajouter les migrations nécessaires ;
 9. reprioriser le backlog ;
-10. séparer le correctif du bug et l'évolution fonctionnelle.
+10. traiter séparément le correctif du bug et l'évolution fonctionnelle.
 
 ### Étape 4 — Version finale
 
@@ -422,8 +423,8 @@ Finaliser les fonctionnalités retenues et vérifier :
 - les migrations ;
 - les tests ;
 - le frontend ;
-- le démarrage depuis un clone vierge ;
-- les données de démonstration.
+- les données de démonstration ;
+- le démarrage à partir d'un clone vierge.
 
 Poser ensuite :
 
@@ -431,31 +432,43 @@ Poser ensuite :
 [JALON] v1.0
 ```
 
-Puis mettre à jour :
+Puis finaliser :
 
 - `CHANGELOG.md` ;
 - `README.md` ;
 - le backlog restant ;
 - `JOURNAL.md`.
 
-### Étape 5 — Épreuve Git
-
-Effectuer l'épreuve Git dans un second dépôt indépendant créé à partir de `git-lab.bundle`.
-
-Les historiques du projet principal et de l'épreuve Git ne doivent jamais être mélangés.
-
-### Étape 6 — Soumission
+### Étape 5 — Soumission
 
 À la fin de l'épreuve :
 
-1. vérifier que les deux dépôts GitHub sont publics ;
-2. pousser les derniers commits ;
-3. relever les hash complets des commits finaux ;
-4. tester les liens depuis une fenêtre de navigation privée ;
-5. compléter `SOUMISSION.md` ;
-6. téléverser `SOUMISSION.md` sur la plateforme avant l'heure limite.
+1. vérifier que le dépôt GitHub est public ;
+2. vérifier que tout le travail est poussé ;
+3. relever le hash complet du commit final ;
+4. tester le dépôt depuis une fenêtre de navigation privée ;
+5. vérifier que le README permet de démarrer le projet depuis un clone vierge ;
+6. compléter `SOUMISSION.md` ;
+7. téléverser la soumission sur la plateforme avant 18h00.
 
 ---
+
+## Definition of Done
+
+Une issue est considérée comme terminée lorsque :
+
+- ses critères d'acceptation sont satisfaits ;
+- les exigences fonctionnelles et règles de gestion concernées sont respectées ;
+- le travail a été réalisé sur une branche dédiée ;
+- les modifications sont enregistrées dans des commits atomiques et explicites ;
+- aucun secret ni fichier généré interdit n'est versionné ;
+- les tests concernés passent ;
+- le contrat API est respecté lorsqu'un endpoint est concerné ;
+- les migrations sont ajoutées lorsqu'une modification du schéma est nécessaire ;
+- la documentation impactée est mise à jour ;
+- une pull request liée à l'issue a été créée ;
+- la branche peut être intégrée sans rendre `main` non fonctionnel ;
+- l'issue peut être fermée après intégration.
 
 ## Definition of Done
 
